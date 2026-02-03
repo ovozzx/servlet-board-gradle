@@ -22,8 +22,9 @@ tasks.withType(JavaCompile) {
 }
 
 dependencies {
-    compileOnly('jakarta.servlet:jakarta.servlet-api:6.0.0')
-
+    // compileOnly('jakarta.servlet:jakarta.servlet-api:6.0.0') // 톰캣 10 이상
+    compileOnly 'javax.servlet:javax.servlet-api:4.0.1' // 직접 추가
+    implementation 'javax.servlet:jstl:1.2' // 직접 추가
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
     implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.28'
