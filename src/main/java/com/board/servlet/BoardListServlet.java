@@ -21,7 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 
-@WebServlet("/board/*")
+@WebServlet("/board-legacy/*")
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,     // 1MB
         maxFileSize = 1024 * 1024 * 10,       // 10MB
@@ -47,6 +47,7 @@ public class BoardListServlet extends HttpServlet {
     	// System.out.println("===" + action);
     	// 전체 목록 조회
     	if(action.equals("/list")) {
+
             // TODO : action null, 커맨드 패턴 (맵으로 관리), 메서드 주석
             // 검색 조건 추가
             SearchVO searchVO = new SearchVO();

@@ -7,6 +7,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Insert title here</title>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/list.css">
 </head>
 <body>
@@ -39,7 +40,7 @@
 			</ul>
 		</form>
 		<div class="count-bar">총  ${allBoardCnt} 건</div>
-		<table class="list" border="1">
+		<table class="list">
 			<thead>
 				<tr>
 					<th>카테고리</th>
