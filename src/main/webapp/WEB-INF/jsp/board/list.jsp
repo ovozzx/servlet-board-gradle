@@ -26,9 +26,9 @@
 					<!-- TODO : db 읽어서 -->
 					<select name="categoryId">
 						<option value="0">전체 카테고리</option>
-						<option value="1" ${param.categoryId == '1' ? 'selected' : ''} >Database</option>
-						<option value="2" ${param.categoryId == '2' ? 'selected' : ''} >JAVA</option>
-						<option value="3" ${param.categoryId == '3' ? 'selected' : ''}>Javascript</option>
+						<c:forEach var="category" items="${categoryList}">
+							<option value="${category.categoryId}">${category.categoryName}</option>
+						</c:forEach>
 					</select>
 					<input name="keyword" type="text" class="search-input"
 						   placeholder="검색어를 입력해 주세요. (제목+작성자+내용)"

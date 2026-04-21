@@ -10,6 +10,34 @@ import java.util.List;
 
 public class BoardDao {
 
+	public List<CategoryVO> selectAllCategories() {
+		List<CategoryVO> list = new ArrayList<>();
+
+		StringBuilder sql = new StringBuilder();
+
+		sql.append( "select * from t_category" );
+
+		try (Connection conn = DBUtil.getConnection();
+			 PreparedStatement ps = conn.prepareStatement(sql.toString());
+		) {
+
+			try(ResultSet rs = ps.executeQuery()){
+				while (rs.next()) {
+					CategoryVO category = new CategoryVO();
+					category.setCategoryId(rs.getLong("CATEGORY_ID"));
+					category.setCategoryName(rs.getString("CATEGORY_NAME"));
+					list.add(category);
+				}
+			}
+
+
+		} catch (Exception e) {
+			e.printStackTrace(); // logger로 대체 (절대 사용 말기)
+		}
+
+		return list; // 위치 보완 throw
+	}
+
 	public List<BoardVO> selectAllBoards(SearchVO searchVO) {
         List<BoardVO> list = new ArrayList<>();
 

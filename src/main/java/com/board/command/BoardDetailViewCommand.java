@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
-public class BoardViewCommand implements Command{
+public class BoardDetailViewCommand implements Command{
 
     private BoardService service = new BoardService();
     private BoardDao dao = new BoardDao();

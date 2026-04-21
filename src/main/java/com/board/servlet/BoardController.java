@@ -1,10 +1,7 @@
 package com.board.servlet;
 
 
-import com.board.command.BoardListCommand;
-import com.board.command.BoardViewCommand;
-import com.board.command.BoardWriteCommand;
-import com.board.command.Command;
+import com.board.command.*;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -29,16 +26,22 @@ public class BoardController extends HttpServlet {
     // 커맨드 맵
     @Override
     public void init() {
-        commandMap.put("/list", new BoardListCommand());
-        commandMap.put("/view", new BoardViewCommand());
-        commandMap.put("/write", new BoardWriteCommand());
+        commandMap.put("GET:/list", new BoardListCommand());
+        commandMap.put("GET:/view", new BoardDetailViewCommand());
+        commandMap.put("GET:/write", new BoardWriteViewCommand());
+        commandMap.put("GET:/modify", new BoardModifyViewCommand());
+
+        commandMap.put("POST:/write", new BoardWriteActionCommand());
+        commandMap.put("POST:/modify", new BoardModifyActionCommand());
+        commandMap.put("POST:/delete", new BoardDeleteActionCommand());
     }
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String action = req.getPathInfo(); // 매핑 후 남는 부분
+        String method = req.getMethod();
 
-        Command command = commandMap.get(action); // 부모로 관리
+        Command command = commandMap.get(method + ":" + action); // 부모로 관리
         try {
             command.execute(req, resp); // TODO:  어떤 예외?
         } catch (Exception e) {

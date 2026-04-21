@@ -13,6 +13,9 @@ public class BoardService {
 
 	private BoardDao dao = new BoardDao();
 
+    public List<CategoryVO> getAllCategories() {
+        return dao.selectAllCategories();
+    }
     // 전체 게시글 조회
     // TODO : 모두 주석 (의도만)
     public List<BoardVO> getAllBoards(SearchVO searchVO) {

@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-
+// TODO : 이 파일 삭제하기
 @WebServlet("/board-legacy/*")
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,     // 1MB
