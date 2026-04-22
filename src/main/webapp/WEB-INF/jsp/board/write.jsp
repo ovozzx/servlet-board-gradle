@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -10,11 +11,11 @@
 </head>
 <body>
 	<form action="${pageContext.request.contextPath}/board/write" method="post" enctype="multipart/form-data">
-	    <!-- DB 읽어서 -->
 		<div class="form-row">
 			<select name="categoryId">
-				<option value="1">JAVA</option>
-				<option value="2">Database</option>
+				<c:forEach var="category" items="${categoryList}">
+					<option value="${category.categoryId}"> ${category.categoryName}</option>
+				</c:forEach>
 			</select>
 		</div>
 		<div class="form-row">
@@ -24,6 +25,7 @@
 		<div class="form-row">
 			<label for="password">비밀번호</label>
 			<input type="password" id="password" name="password" />
+			<label for="password">비밀번호 확인</label>
 			<input type="password" name="password-confirm" />
 		</div>
 		<div class="form-row">

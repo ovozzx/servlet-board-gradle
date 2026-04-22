@@ -18,21 +18,20 @@
 				<input name="page" type="hidden" />
 				<li>등록일</li>
 				<li>
-					<input name="startDate" type="date" value="${param.startDate}"/>
+					<input name="startDate" type="date" value="${startDate}"/>
 					~
-					<input name="endDate" type="date" value="${param.endDate}"/>
+					<input name="endDate" type="date" value="${endDate}"/>
 				</li>
 				<li>
-					<!-- TODO : db 읽어서 -->
 					<select name="categoryId">
-						<option value="0">전체 카테고리</option>
+						<option value="0" ${empty categoryId or categoryId eq "0" ? "selected" : ""}>전체 카테고리</option>
 						<c:forEach var="category" items="${categoryList}">
-							<option value="${category.categoryId}">${category.categoryName}</option>
+							<option value="${category.categoryId}" ${categoryId eq category.categoryId  ? "selected" : ""}> ${category.categoryName}</option>
 						</c:forEach>
 					</select>
 					<input name="keyword" type="text" class="search-input"
 						   placeholder="검색어를 입력해 주세요. (제목+작성자+내용)"
-						   value="${param.keyword}" />
+						   value="${keyword}" />
 				</li>
 				<li>
 					<button type="submit" class="search-btn">검색</button>
@@ -67,7 +66,7 @@
 		<!-- 페이지네이션 : 전체 데이터 수에 따라 유동적을 바뀜 -->
 
 		<c:forEach begin="1" end="${pageCnt}" var="i">
-			<a href="${pageContext.request.contextPath}/board/list?page=${i}&startDate=${param.startDate}&endDate=${param.endDate}&categoryId=${param.categoryId}&keyword=${param.keyword}">${i}</a>
+			<a href="${pageContext.request.contextPath}/board/list?page=${i}&startDate=${startDate}&endDate=${endDate}&categoryId=${param.categoryId}&keyword=${param.keyword}">${i}</a>
 		</c:forEach>
 		<div class="pagination">
 

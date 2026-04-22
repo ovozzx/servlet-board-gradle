@@ -1,5 +1,6 @@
 package com.board.service;
 
+import com.board.config.AppConfig;
 import com.board.dao.BoardDao;
 import com.board.vo.*;
 
@@ -52,7 +53,7 @@ public class BoardService {
             String fileName = Paths.get(filePart.getSubmittedFileName())
                     .getFileName().toString();
             // 실제 저장 경로
-            String uploadPath = "/Users/leesoyeong/upload";
+            String uploadPath = AppConfig.get("upload.path");
             File uploadDir = new File(uploadPath);
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();

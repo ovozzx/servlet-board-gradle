@@ -20,6 +20,7 @@ import java.util.Map;
         maxRequestSize = 1024 * 1024 * 20     // 20MB
 )
 public class BoardController extends HttpServlet {
+
     // TODO : 오버라이드 함수 공부
     private Map<String, Command> commandMap = new HashMap<>();
 
@@ -30,6 +31,7 @@ public class BoardController extends HttpServlet {
         commandMap.put("GET:/view", new BoardDetailViewCommand());
         commandMap.put("GET:/write", new BoardWriteViewCommand());
         commandMap.put("GET:/modify", new BoardModifyViewCommand());
+        commandMap.put("GET:/download", new BoardDownloadCommand());
 
         commandMap.put("POST:/write", new BoardWriteActionCommand());
         commandMap.put("POST:/modify", new BoardModifyActionCommand());
@@ -38,6 +40,9 @@ public class BoardController extends HttpServlet {
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+        resp.setCharacterEncoding("UTF-8");
+
         String action = req.getPathInfo(); // 매핑 후 남는 부분
         String method = req.getMethod();
 
