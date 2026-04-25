@@ -2,6 +2,11 @@ package com.board.servlet;
 
 
 import com.board.command.*;
+import com.board.exception.BusinessException;
+import com.board.exception.NotFoundException;
+import com.board.exception.ValidationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -21,6 +26,7 @@ import java.util.Map;
 )
 public class BoardController extends HttpServlet {
 
+    private static final Logger log = LoggerFactory.getLogger(BoardController.class);
     // TODO : 오버라이드 함수 공부
     private Map<String, Command> commandMap = new HashMap<>();
 
@@ -48,9 +54,30 @@ public class BoardController extends HttpServlet {
 
         Command command = commandMap.get(method + ":" + action); // 부모로 관리
         try {
-            command.execute(req, resp); // TODO:  어떤 예외?
+            command.execute(req, resp);
+        } catch (ValidationException e) {
+            log.error("ValidationException", e);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+            forwardAlert(req, resp, e.getMessage(), "");
+        } catch (NotFoundException e) {
+            log.error("NotFoundException", e);
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404
+            forwardAlert(req, resp, e.getMessage(), "/board/list");
+        } catch (BusinessException e) {
+            log.error("BusinessException", e);
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500
+            forwardAlert(req, resp, e.getMessage(), "/board/list");
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Exception", e);
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500
+            forwardAlert(req, resp, e.getMessage(), "/board/list");
+            //throw new RuntimeException(e); // 500
         }
+    }
+
+    private void forwardAlert(HttpServletRequest req, HttpServletResponse res, String message, String redirecUrl) throws ServletException, IOException { // 공통 처리
+        req.setAttribute("alertMsg", message);
+        req.setAttribute("redirectUrl", redirecUrl);
+        req.getRequestDispatcher("/WEB-INF/jsp/board/alert.jsp").forward(req, res);
     }
 }

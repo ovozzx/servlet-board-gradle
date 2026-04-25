@@ -2,6 +2,7 @@ package com.board.dao;
 
 
 import com.board.connection.DBUtil;
+import com.board.exception.BusinessException;
 import com.board.vo.*;
 
 import java.sql.*;
@@ -32,10 +33,10 @@ public class BoardDao {
 
 
 		} catch (Exception e) {
-			e.printStackTrace(); // logger로 대체 (절대 사용 말기)
+			throw new BusinessException("카테고리를 읽는 중 오류가 발생했습니다.", e);
 		}
 
-		return list; // 위치 보완 throw
+		return list;
 	}
 
 	public List<BoardVO> selectAllBoards(SearchVO searchVO) {
@@ -128,10 +129,10 @@ public class BoardDao {
 
 
         } catch (Exception e) {
-            e.printStackTrace(); // logger로 대체 (절대 사용 말기)
+			throw new BusinessException("게시글을 읽는 중 오류가 발생했습니다.", e);
         }
 
-        return list; // 위치 보완 throw
+        return list;
     }
 
 	public int selectAllBoardCnt(SearchVO searchVO){
@@ -186,15 +187,15 @@ public class BoardDao {
 			}
 
 
-		}catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			throw new BusinessException("게시글을 읽는 중 오류가 발생했습니다.", e);
 		}
 
 		return 0;
 	}
 	
 	public BoardVO selectDetailBoardById(Long boardId) {
-		BoardVO board = new BoardVO();
+		BoardVO board = null;
 	    String sql = 
 		        "select c.category_name " +
 				", b.board_id " +
@@ -214,21 +215,23 @@ public class BoardDao {
 		        	 PreparedStatement ps = conn.prepareStatement(sql)) {
 
 		            ps.setLong(1, boardId); // ?에 값 바인딩
-		            ResultSet rs = ps.executeQuery();
-		            
-		        	while (rs.next()) { // if로 수정
-		                board.setBoardId(rs.getLong("BOARD_ID"));
-		                board.setCategoryName(rs.getString("CATEGORY_NAME"));
-		                board.setTitle(rs.getString("TITLE"));
-		                board.setContent(rs.getString("CONTENT"));
-		                board.setCreateUser(rs.getString("CREATE_USER"));
-		                board.setViewCount(rs.getInt("VIEW_COUNT"));
-		                board.setCreateDate(rs.getTimestamp("CREATE_DATE"));
-		                board.setModifyDate(rs.getTimestamp("MODIFY_DATE"));
-		        	}
+		            try(ResultSet rs = ps.executeQuery()) { // try-with-resources => 블록을 벗어날 때 자동으로 close() 호출
+
+						if (rs.next()) { // 단건 조회
+							board = new BoardVO(); // 있을 때만 객체 생성
+							board.setBoardId(rs.getLong("BOARD_ID"));
+							board.setCategoryName(rs.getString("CATEGORY_NAME"));
+							board.setTitle(rs.getString("TITLE"));
+							board.setContent(rs.getString("CONTENT"));
+							board.setCreateUser(rs.getString("CREATE_USER"));
+							board.setViewCount(rs.getInt("VIEW_COUNT"));
+							board.setCreateDate(rs.getTimestamp("CREATE_DATE"));
+							board.setModifyDate(rs.getTimestamp("MODIFY_DATE"));
+						}
+					}
 
 		        } catch (Exception e) {
-		            e.printStackTrace();
+					throw new BusinessException("게시글을 읽는 중 오류가 발생했습니다.", e);
 		        }
 
 		
@@ -250,17 +253,18 @@ public class BoardDao {
 	        try (Connection conn = DBUtil.getConnection();
 	            PreparedStatement ps = conn.prepareStatement(sql)){
 	        	ps.setLong(1, boardId);
-	            ResultSet rs = ps.executeQuery();
+	            try(ResultSet rs = ps.executeQuery()) {
 
-	            while (rs.next()) {
-	            	ReplyVO reply = new ReplyVO();
-	            	reply.setContent(rs.getString("CONTENT"));      
-	                reply.setCreateDate(rs.getTimestamp("CREATE_DATE"));
-	                list.add(reply);
-	            }
+					while (rs.next()) {
+						ReplyVO reply = new ReplyVO();
+						reply.setContent(rs.getString("CONTENT"));
+						reply.setCreateDate(rs.getTimestamp("CREATE_DATE"));
+						list.add(reply);
+					}
+				}
 
 	        } catch (Exception e) {
-	            e.printStackTrace();
+				throw new BusinessException("댓글을 읽는 중 오류가 발생했습니다.", e);
 	        }
 
 	        return list;
@@ -276,19 +280,20 @@ public class BoardDao {
 		try (Connection conn = DBUtil.getConnection();
 			 PreparedStatement ps = conn.prepareStatement(sql)){
 			ps.setLong(1, boardId);
-			ResultSet rs = ps.executeQuery();
+			try(ResultSet rs = ps.executeQuery()) {
 
-			while (rs.next()) {
-				AttachmentVO file = new AttachmentVO();
-				file.setAttachmentId(rs.getLong("attachment_id"));
-				file.setOriginalName(rs.getString("original_name"));
-				file.setSaveName(rs.getString("save_name"));
-				file.setFilePath(rs.getString("file_path"));
-				list.add(file);
+				while (rs.next()) {
+					AttachmentVO file = new AttachmentVO();
+					file.setAttachmentId(rs.getLong("attachment_id"));
+					file.setOriginalName(rs.getString("original_name"));
+					file.setSaveName(rs.getString("save_name"));
+					file.setFilePath(rs.getString("file_path"));
+					list.add(file);
+				}
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new BusinessException("첨부파일을 읽는 중 오류가 발생했습니다.", e);
 		}
 
 		return list;
@@ -313,7 +318,6 @@ public class BoardDao {
 			ps.setString(5, board.getUserPassword());
 			// executeUpdate : INSERT / UPDATE / DELETE
 			//return ps.executeUpdate(); // INSERT 성공 시 1 반환
-			// TODO : ResultSet 리소스 확인
 			ps.executeUpdate();
 			// ResultSet rs = ps.executeUpdate();
 			// ResultSet rs = ps.executeQuery(); // INSERT ... RETURNING 쓸 때는
@@ -328,14 +332,12 @@ public class BoardDao {
 			return boardId;
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new BusinessException("게시글 등록 중 오류가 발생했습니다.", e);
 		}
 
-
-		return 0; // 실패
 	}
 
-	public int insertNewAttachment(AttachmentVO attachmentVO) {
+	public void insertNewAttachment(AttachmentVO attachmentVO) {
 		String sql =
 				"INSERT INTO t_attachment " +
 						"(board_id, original_name, save_name, file_path, file_ext, file_size, create_date, modify_date, is_usable) " +
@@ -352,13 +354,12 @@ public class BoardDao {
 			ps.setString(5, attachmentVO.getFileExt());
 			ps.setLong(6, attachmentVO.getFileSize());
 
-			return ps.executeUpdate(); // INSERT 성공 시 1 반환
+			ps.executeUpdate();
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new BusinessException("첨부파일 등록 중 오류가 발생했습니다.", e);
 		}
 
-		return 0; // 실패
 	}
 
 	public int updateBoard(BoardVO board){
@@ -378,13 +379,13 @@ public class BoardDao {
 			ps.setString(4, board.getContent());
 			ps.setLong(5, board.getBoardId());
 			return ps.executeUpdate(); // DB에서 변경된(영향받은) 행(row) 개수를 반환
-		} catch (Exception e){
-			e.printStackTrace();
+		} catch (Exception e) {
+			throw new BusinessException("게시글 수정 중 오류가 발생했습니다.", e);
 		}
-		return 0;
+
 	}
 
-	public String selectPasswordById(RequestVerifyVO requestVerifyVO){
+	public String selectPasswordById(Long boardId){
 
 		String sql =
 				"select user_password " +
@@ -396,7 +397,7 @@ public class BoardDao {
 		try (Connection conn = DBUtil.getConnection();
 			 PreparedStatement ps = conn.prepareStatement(sql); ){
 
-			ps.setLong(1, requestVerifyVO.getBoardId());
+			ps.setLong(1, boardId);
 
 			try (ResultSet rs = ps.executeQuery()) {
 			// JDBC 리소스 3대장 : Connection / PreparedStatement / ResultSet
@@ -406,7 +407,7 @@ public class BoardDao {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new BusinessException("비밀번호 확인 중 오류가 발생했습니다.", e);
 		}
 
 		return user_password;
@@ -423,13 +424,13 @@ public class BoardDao {
 			PreparedStatement ps = conn.prepareStatement(sql);){
 			ps.setLong(1, requestVerifyVO.getBoardId());
 			return ps.executeUpdate(); // DB에서 변경된(영향받은) 행(row) 개수를 반환
-		} catch (Exception e){
-			e.printStackTrace();
+		} catch (Exception e) {
+			throw new BusinessException("게시글 삭제 중 오류가 발생했습니다.", e);
 		}
-		return 0;
+
 	}
 
-	public int updateViewCnt(Long boardId){
+	public void updateViewCnt(Long boardId){
 		String sql = "UPDATE t_board " +
 				"SET view_count = view_count + 1 " +
 				"WHERE board_id = ? ";
@@ -438,86 +439,13 @@ public class BoardDao {
 			PreparedStatement ps = conn.prepareStatement(sql);){
 
 			ps.setLong(1, boardId);
-			return ps.executeUpdate(); // DB에서 변경된(영향받은) 행(row) 개수를 반환
-		} catch (Exception e){
-			e.printStackTrace();
+			ps.executeUpdate();
+		} catch (Exception e) {
+			throw new BusinessException("조회수 업데이트 중 오류가 발생했습니다.", e);
 		}
-		return 0;
+
 	}
 
-//	public List<BoardVO> selectBoardsByCondition(SearchVO searchVO) {
-//		List<BoardVO> list = new ArrayList<>();
-//		String searchCondition = null;
-//		// TODO
-//		// 등록일 - 시작일만 있는 경우
-//		// 등록일 - 종료일만 있는 경우
-//		// 등록일 - 시작일 & 종료일 둘다 있는 경우
-//		// 카테고리 있는 경우
-////		if(searchVO.getCategoryId() == 0){
-////			searchCondition += "";
-////		} else{
-////			searchCondition += "and b.category_id = ? ";
-////		}
-////		// 키워드 있는 경우
-////		if(searchVO.getKeyword() == null){
-////			searchCondition += "";
-////		} else{
-////			searchCondition += "and (b.title like ? or b.create_user like ? or b.content like ?)  ";
-////		}
-//
-//		System.out.println("===" + searchVO);
-//		String sql =
-//				"select c.category_name " +
-//						", b.board_id " +
-//						", b.title " +
-//						", b.content " +
-//						", b.create_user " +
-//						", b.view_count " +
-//						", b.create_date " +
-//						", b.modify_date " +
-//						"from t_board b " +
-//						"inner join t_category c " +
-//						"on b.category_id = c.category_id " +
-//						"where b.is_usable = true " +
-//						"and b.create_date between ? and ? "
-//				         ;
-//
-//
-//		try (Connection conn = DBUtil.getConnection();
-//			 PreparedStatement ps = conn.prepareStatement(sql);) {
-//
-//			String keyword = "%" + searchVO.getKeyword() + "%";
-//
-//			ps.setString(1, searchVO.getStartDate());
-//			ps.setString(2, searchVO.getEndDate());
-////			ps.setLong(3, searchVO.getCategoryId());
-////			ps.setString(4, keyword);
-////			ps.setString(5, keyword);
-////			ps.setString(6, keyword);
-//
-//			try(ResultSet rs = ps.executeQuery()){
-//				while (rs.next()) {
-//					BoardVO board = new BoardVO();
-//					board.setBoardId(rs.getLong("BOARD_ID"));
-//					board.setCategoryName(rs.getString("CATEGORY_NAME"));
-//					board.setTitle(rs.getString("TITLE"));
-//					board.setContent(rs.getString("CONTENT"));
-//					board.setCreateUser(rs.getString("CREATE_USER"));
-//					board.setViewCount(rs.getInt("VIEW_COUNT"));
-//					board.setCreateDate(rs.getTimestamp("CREATE_DATE"));
-//					board.setModifyDate(rs.getTimestamp("MODIFY_DATE"));
-//					list.add(board);
-//				}
-//
-//			}
-//
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//
-//		return list;
-//	}
 
 	public AttachmentVO selectAttachmentById(long fileId) {
 
@@ -548,7 +476,7 @@ public class BoardDao {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new BusinessException("첨부파일을 읽는 중 오류가 발생했습니다.", e);
 		}
 
 		return attachment;

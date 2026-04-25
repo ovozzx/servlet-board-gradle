@@ -7,9 +7,8 @@ public class ReplyService {
 	
 	private ReplyDao dao = new ReplyDao();
 
-	public int registerNewReply(ReplyVO reply) {
-		
-		return dao.insertNewReply(reply);
+	public void registerNewReply(ReplyVO reply) {
+		dao.insertNewReply(reply);
 	}
 
 }

@@ -11,7 +11,7 @@
 </head>
 <body>
     <div id="modal" style="display: none;">
-		<form action="${pageContext.request.contextPath}/board/delete/verify" method="post">
+		<form action="${pageContext.request.contextPath}/board/delete" method="post">
 			<input type="hidden" name="boardId" value="${board.boardId}">
 			<label for="password">비밀번호</label>
 			<input id="password" type="password" name="password" />

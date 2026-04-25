@@ -2,7 +2,11 @@ package com.board.service;
 
 import com.board.config.AppConfig;
 import com.board.dao.BoardDao;
+import com.board.exception.NotFoundException;
+import com.board.exception.ValidationException;
 import com.board.vo.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.Part;
 import java.io.File;
@@ -12,6 +16,7 @@ import java.util.List;
 
 public class BoardService {
 
+    private static final Logger log = LoggerFactory.getLogger(BoardService.class);
 	private BoardDao dao = new BoardDao();
 
     public List<CategoryVO> getAllCategories() {
@@ -25,9 +30,12 @@ public class BoardService {
     
     // 상세 게시글 조회 
     public BoardVO getDetailBoardById(Long boardId) {
-        // 조회수 증가
-        dao.updateViewCnt(boardId);
-        return dao.selectDetailBoardById(boardId);
+        BoardVO board = dao.selectDetailBoardById(boardId);
+        if (board == null) {
+            throw new NotFoundException("존재하지 않는 게시글입니다.");
+        }
+        dao.updateViewCnt(boardId);   // 존재 확인 후에 조회수 증가
+        return board;
     }
 
 	public List<ReplyVO> getAllReplys(Long boardId) {
@@ -39,10 +47,14 @@ public class BoardService {
         return dao.selectAllFiles(boardId);
     }
 
-	public int registerNewBoard(BoardVO board, List<Part> filePartList) throws IOException {
+	public long registerNewBoard(BoardVO board, List<Part> filePartList) throws IOException {
+
+        if(!board.getUserPassword().equals(board.getPasswordConfirm())){
+            throw new ValidationException("비밀번호가 일치하지 않습니다.");
+        }
 
         long boardId = dao.insertNewBoard(board);
-        int attachmentCnt = 0;
+
         for(Part filePart: filePartList){
             // 파일 선택 안했을 때
             if (filePart.getSubmittedFileName() == null) continue;
@@ -70,35 +82,44 @@ public class BoardService {
             attachmentVO.setFileExt("");
             attachmentVO.setFileSize(filePart.getSize());
 
-            attachmentCnt += dao.insertNewAttachment(attachmentVO);
+            dao.insertNewAttachment(attachmentVO);
         }
 
-        if(boardId > 0){
-            return attachmentCnt;
-        }else{
-            return 0;
-        }
+
+        return boardId;
+
 
 	}
 
-    public int modifyBoard(BoardVO board) {
-        return dao.updateBoard(board);
+    public void modifyBoard(BoardVO board) {
+        // 비밀번호 검증 후 수정
+        String password = dao.selectPasswordById(board.getBoardId());
+        if(password == null){
+            throw new NotFoundException("존재하지 않는 게시글입니다.");
+        }
+        if(!password.equals(board.getUserPassword())){
+            throw new ValidationException("비밀번호가 일치하지 않습니다.");
+        }
+        int affected = dao.updateBoard(board);
+        if (affected == 0) {
+            throw new NotFoundException("존재하지 않거나 삭제된 게시글입니다.");
+        }
     }
 
     // 삭제 - 비밀번호 검증 후 삭제
-    public boolean verifyAndDeleteById(RequestVerifyVO requestVerifyVO){
-        String password = dao.selectPasswordById(requestVerifyVO);
-        if(password.equals(requestVerifyVO.getPasswordInput())){
-            // 삭제
-            int successCnt = dao.deleteBoardById(requestVerifyVO);
-            return successCnt > 0;
+    public void deleteById(RequestVerifyVO requestVerifyVO){
+        String password = dao.selectPasswordById(requestVerifyVO.getBoardId());
+        if(password == null){
+            throw new NotFoundException("존재하지 않는 게시글입니다.");
         }
-        return false; // 미일치
+        if(!password.equals(requestVerifyVO.getPasswordInput())){
+            throw new ValidationException("비밀번호가 일치하지 않습니다.");
+        }
+        int affected = dao.deleteBoardById(requestVerifyVO);
+        if (affected == 0) {
+            throw new NotFoundException("이미 삭제된 게시글입니다.");
+        }
     }
 
-    // 검색 조회
-//    public List<BoardVO> getBoardsByCondition(SearchVO searchVO) {
-//        return dao.selectBoardsByCondition(searchVO);
-//    }
 
 }

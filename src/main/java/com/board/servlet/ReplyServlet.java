@@ -20,9 +20,9 @@ public class ReplyServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String action = req.getPathInfo();
         req.setCharacterEncoding("UTF-8");
-        
+
         // 등록 
-        if (action.equals("/write")) {
+        if ("/write".equals(action)) {
             ReplyVO reply = new ReplyVO();
             // vo 멤버변수들을 파라미터별로 세팅
             Long boardId = Long.parseLong(req.getParameter("boardId"));

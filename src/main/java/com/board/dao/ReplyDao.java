@@ -2,6 +2,7 @@ package com.board.dao;
 
 
 import com.board.connection.DBUtil;
+import com.board.exception.BusinessException;
 import com.board.vo.ReplyVO;
 
 import java.sql.Connection;
@@ -10,7 +11,7 @@ import java.sql.SQLException;
 
 public class ReplyDao {
 
-	public int insertNewReply(ReplyVO reply) {
+	public void insertNewReply(ReplyVO reply) {
 		String sql =
 	            "INSERT INTO t_reply " +
 	            "(board_id, parent_reply_id, create_user, content, create_date, modify_date, is_usable) " +
@@ -24,13 +25,12 @@ public class ReplyDao {
 	            ps.setString(3, reply.getCreateUser());
 	            ps.setString(4, reply.getContent());
 
-	            return ps.executeUpdate(); // INSERT 성공 시 1 반환
+	            ps.executeUpdate();
 
 	        } catch (Exception e) {
-	            e.printStackTrace();
+				throw new BusinessException("댓글 등록 중 오류가 발생했습니다.", e);
 	        }
 
-        return 0; // 실패
 	}
 
 }

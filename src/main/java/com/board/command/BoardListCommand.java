@@ -2,6 +2,7 @@ package com.board.command;
 
 import com.board.dao.BoardDao;
 import com.board.service.BoardService;
+import com.board.util.Pagination;
 import com.board.vo.BoardVO;
 import com.board.vo.CategoryVO;
 import com.board.vo.SearchVO;
@@ -78,7 +79,7 @@ public class BoardListCommand implements Command{
         // 전체 수 / 사이즈 ==> 올림 ==> 이 개수대로 a 태그 생성
         // int allBoardCnt = boardList.size();
         int allBoardCnt = dao.selectAllBoardCnt(searchVO);
-        int pageCnt = (int) Math.ceil((double) allBoardCnt / 10);
+        int pageCnt = Pagination.create(allBoardCnt);
 
         req.setAttribute("categoryList", categoryList);
         req.setAttribute("boardList", boardList);

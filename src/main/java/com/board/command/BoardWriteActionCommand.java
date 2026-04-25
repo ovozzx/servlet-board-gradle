@@ -17,18 +17,20 @@ public class BoardWriteActionCommand implements Command{
 
     @Override
     public String execute(HttpServletRequest req, HttpServletResponse resp) throws Exception {
-        // TODO : 비밀번호 확인, 입력값 유효성 검증
+        // TODO : 입력값 유효성 검증
         BoardVO board = new BoardVO();
         // vo 멤버변수들을 파라미터별로 세팅
         // System.out.println("===" + req.getParameter("categoryId"));
         long categoryId = Long.parseLong(req.getParameter("categoryId"));
         String createUser = req.getParameter("createUser");
         String password = req.getParameter("password");
+        String passwordConfirm = req.getParameter("password-confirm");
         String title = req.getParameter("title");
         String content = req.getParameter("content");
         board.setCategoryId(categoryId);
         board.setCreateUser(createUser);
         board.setUserPassword(password);
+        board.setPasswordConfirm(passwordConfirm);
         board.setTitle(title);
         board.setContent(content);
 

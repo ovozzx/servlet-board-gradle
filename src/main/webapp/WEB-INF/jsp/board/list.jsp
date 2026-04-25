@@ -64,10 +64,11 @@
 			</tbody>
 		</table>
 		<!-- 페이지네이션 : 전체 데이터 수에 따라 유동적을 바뀜 -->
-
+        <a> < </a>
 		<c:forEach begin="1" end="${pageCnt}" var="i">
 			<a href="${pageContext.request.contextPath}/board/list?page=${i}&startDate=${startDate}&endDate=${endDate}&categoryId=${param.categoryId}&keyword=${param.keyword}">${i}</a>
 		</c:forEach>
+		<a> > </a>
 		<div class="pagination">
 
 		</div>
